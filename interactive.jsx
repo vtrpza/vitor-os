@@ -42,9 +42,16 @@ function AppMusic() {
 
   const toggle = () => {
     const a = ensureAudio();
+    const targetGain = playing ? 0.0 : 0.5;
+    const ramp = () => {
+      const t = a.ctx.currentTime;
+      a.master.gain.cancelScheduledValues(t);
+      a.master.gain.setValueAtTime(a.master.gain.value, t);
+      a.master.gain.linearRampToValueAtTime(targetGain, t + 0.4);
+    };
     if (a) {
-      if (a.ctx.state === "suspended") a.ctx.resume();
-      a.master.gain.linearRampToValueAtTime(playing ? 0.0 : 0.5, a.ctx.currentTime + 0.4);
+      if (a.ctx.state === "suspended") a.ctx.resume().then(ramp);
+      else ramp();
     }
     setPlaying((p) => !p);
   };
