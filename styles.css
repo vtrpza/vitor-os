@@ -165,6 +165,7 @@ a { color: var(--accent); text-decoration: none; }
   transition: background 0.15s, opacity 0.15s;
 }
 .mb-icon-btn:hover { opacity: 1; background: var(--chip); }
+.mb-lang-btn { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; min-width: 26px; justify-content: center; }
 .mb-clock { font-variant-numeric: tabular-nums; letter-spacing: 0.2px; }
 
 /* ============================================================

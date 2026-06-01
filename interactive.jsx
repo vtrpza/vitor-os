@@ -1,10 +1,10 @@
 /* global React, Icon */
 // Vitor Pouza OS — apps interativos: Música + Terminal
 const { createElement: m, useState: useS, useRef, useEffect: useE } = React;
-const DD = window.VP_DATA;
 
 /* =================== TOCADOR DE MÚSICA =================== */
-function AppMusic() {
+function AppMusic({ lang = "pt" }) {
+  const DD = lang === "en" ? window.VP_DATA_EN : window.VP_DATA;
   const [idx, setIdx] = useS(0);
   const [playing, setPlaying] = useS(false);
   const [prog, setProg] = useS(0);
@@ -116,79 +116,128 @@ const ASCII = [
   "|___/_/       ~~~~~~~~~~~~~~~",
 ].join("\n");
 
+const TERM_MSG = {
+  pt: {
+    welcome: "Bem-vindo ao <span class='hl'>Vitor Pouza OS</span>. Digite <span class='hl'>help</span> para ver os comandos.",
+    help: [
+      "Comandos disponíveis:",
+      "  <span class='hl'>sobre</span>        perfil e resumo",
+      "  <span class='hl'>experiencia</span>  histórico profissional",
+      "  <span class='hl'>skills</span>       stack técnica",
+      "  <span class='hl'>projetos</span>     produtos no ar",
+      "  <span class='hl'>contato</span>      como me encontrar",
+      "  <span class='hl'>cv</span>           baixar currículo",
+      "  <span class='hl'>open</span> &lt;app&gt;   abrir janela (ex: open projetos)",
+      "  <span class='hl'>theme</span> dark|light   trocar tema",
+      "  <span class='hl'>neofetch</span>     resumo do sistema",
+      "  <span class='hl'>whoami</span> · <span class='hl'>ls</span> · <span class='hl'>clear</span> · <span class='hl'>sudo</span>",
+    ].join("\n"),
+    ls: "sobre  experiencia  skills  projetos  conquistas  contato  cv  musica",
+    cvOpen: "<span class='ok'>✓</span> abrindo currículo em PDF...",
+    openOk: (app) => "<span class='ok'>✓</span> abrindo <span class='hl'>" + app + "</span>...",
+    openErr: "app não encontrado. tente: open projetos",
+    themeSet: (t) => "<span class='ok'>✓</span> tema → " + t,
+    themeToggled: "<span class='ok'>✓</span> tema alternado",
+    uptime: "8 anos de carreira",
+    status: "<span class='ok'>disponível — início imediato</span>",
+    sudo: "Permissão negada: o Vitor já tem autonomia total de execução. 😎",
+    exit: "não dá pra sair de uma carreira de 8 anos. tente 'help'.",
+    notFound: (c) => "comando não encontrado: <span class='hl'>" + c + "</span>. digite <span class='hl'>help</span>.",
+  },
+  en: {
+    welcome: "Welcome to <span class='hl'>Vitor Pouza OS</span>. Type <span class='hl'>help</span> to see available commands.",
+    help: [
+      "Available commands:",
+      "  <span class='hl'>about</span>        profile and summary",
+      "  <span class='hl'>experience</span>   professional history",
+      "  <span class='hl'>skills</span>       tech stack",
+      "  <span class='hl'>projects</span>     live products",
+      "  <span class='hl'>contact</span>      how to find me",
+      "  <span class='hl'>cv</span>           download resume",
+      "  <span class='hl'>open</span> &lt;app&gt;   open window (e.g.: open projects)",
+      "  <span class='hl'>theme</span> dark|light   switch theme",
+      "  <span class='hl'>neofetch</span>     system summary",
+      "  <span class='hl'>whoami</span> · <span class='hl'>ls</span> · <span class='hl'>clear</span> · <span class='hl'>sudo</span>",
+    ].join("\n"),
+    ls: "about  experience  skills  projects  achievements  contact  cv  music",
+    cvOpen: "<span class='ok'>✓</span> opening resume PDF...",
+    openOk: (app) => "<span class='ok'>✓</span> opening <span class='hl'>" + app + "</span>...",
+    openErr: "app not found. try: open projects",
+    themeSet: (t) => "<span class='ok'>✓</span> theme → " + t,
+    themeToggled: "<span class='ok'>✓</span> theme toggled",
+    uptime: "8 years of career",
+    status: "<span class='ok'>available — immediate start</span>",
+    sudo: "Permission denied: Vitor already has full execution autonomy. 😎",
+    exit: "can't exit an 8-year career. try 'help'.",
+    notFound: (c) => "command not found: <span class='hl'>" + c + "</span>. type <span class='hl'>help</span>.",
+  }
+};
+
 function termRespond(raw, ctx) {
   const cmd = raw.trim();
   const [c, ...args] = cmd.split(/\s+/);
-  const id = DD.identidade;
+  const lang = ctx.lang || "pt";
+  const D = lang === "en" ? window.VP_DATA_EN : window.VP_DATA;
+  const id = D.identidade;
   const lc = (c || "").toLowerCase();
+  const M = TERM_MSG[lang];
   const out = (html, cls) => ({ html, cls: cls || "term-out" });
   switch (lc) {
     case "": return null;
     case "help": case "ajuda": case "?":
-      return out([
-        "Comandos disponíveis:",
-        "  <span class='hl'>sobre</span>        perfil e resumo",
-        "  <span class='hl'>experiencia</span>  histórico profissional",
-        "  <span class='hl'>skills</span>       stack técnica",
-        "  <span class='hl'>projetos</span>     produtos no ar",
-        "  <span class='hl'>contato</span>      como me encontrar",
-        "  <span class='hl'>cv</span>           baixar currículo",
-        "  <span class='hl'>open</span> &lt;app&gt;   abrir janela (ex: open projetos)",
-        "  <span class='hl'>theme</span> dark|light   trocar tema",
-        "  <span class='hl'>neofetch</span>     resumo do sistema",
-        "  <span class='hl'>whoami</span> · <span class='hl'>ls</span> · <span class='hl'>clear</span> · <span class='hl'>sudo</span>",
-      ].join("\n"));
+      return out(M.help);
     case "sobre": case "about":
-      return out(`<span class='hl'>${id.nome}</span> — ${id.cargo}\n${DD.resumoCurto}`);
+      return out(`<span class='hl'>${id.nome}</span> — ${id.cargo}\n${D.resumoCurto}`);
     case "whoami": return out("vitor — " + id.cargo + " · " + id.modelo);
-    case "experiencia": case "exp":
-      return out(DD.experiencia.map((x) => `<span class='hl'>${x.periodo}</span>  ${x.cargo} @ ${x.empresa}`).join("\n"));
+    case "experiencia": case "experience": case "exp":
+      return out(D.experiencia.map((x) => `<span class='hl'>${x.periodo}</span>  ${x.cargo} @ ${x.empresa}`).join("\n"));
     case "skills": case "stack":
-      return out(DD.skills.map((g) => `<span class='hl'>${g.grupo}:</span> ${g.itens.join(", ")}`).join("\n"));
+      return out(D.skills.map((g) => `<span class='hl'>${g.grupo}:</span> ${g.itens.join(", ")}`).join("\n"));
     case "projetos": case "projects":
-      return out(DD.projetos.map((p) => `<span class='hl'>${p.nome}</span> — ${p.tagline}\n  <a href='${p.url}' target='_blank'>${p.url}</a>`).join("\n"));
+      return out(D.projetos.map((p) => `<span class='hl'>${p.nome}</span> — ${p.tagline}\n  <a href='${p.url}' target='_blank'>${p.url}</a>`).join("\n"));
     case "contato": case "contact":
       return out(`email:    <a href='mailto:${id.email}'>${id.email}</a>\ntelefone: ${id.telefone}\ngithub:   <a href='${id.githubUrl}' target='_blank'>${id.github}</a>\nlinkedin: <a href='${id.linkedinUrl}' target='_blank'>${id.linkedin}</a>`);
-    case "cv": case "curriculo":
+    case "cv": case "curriculo": case "resume":
       ctx.open && ctx.open("cv");
-      return out("<span class='ok'>✓</span> abrindo currículo em PDF...");
+      return out(M.cvOpen);
     case "ls":
-      return out("sobre  experiencia  skills  projetos  conquistas  contato  cv  musica");
+      return out(M.ls);
     case "open": case "abrir": {
-      const map = { sobre: "about", about: "about", experiencia: "exp", exp: "exp", skills: "skills", projetos: "proj", projects: "proj", conquistas: "wins", contato: "contact", contact: "contact", cv: "cv", musica: "music", music: "music", terminal: "term" };
+      const map = { sobre: "about", about: "about", experiencia: "exp", experience: "exp", exp: "exp", skills: "skills", projetos: "proj", projects: "proj", conquistas: "wins", achievements: "wins", contato: "contact", contact: "contact", cv: "cv", musica: "music", music: "music", terminal: "term" };
       const target = map[(args[0] || "").toLowerCase()];
-      if (target) { ctx.open && ctx.open(target); return out("<span class='ok'>✓</span> abrindo <span class='hl'>" + args[0] + "</span>..."); }
-      return out("app não encontrado. tente: open projetos");
+      if (target) { ctx.open && ctx.open(target); return out(M.openOk(args[0])); }
+      return out(M.openErr);
     }
     case "theme": case "tema": {
       const t = (args[0] || "").toLowerCase();
-      if (t === "dark" || t === "light") { ctx.setTheme && ctx.setTheme(t); return out("<span class='ok'>✓</span> tema → " + t); }
-      ctx.toggleTheme && ctx.toggleTheme(); return out("<span class='ok'>✓</span> tema alternado");
+      if (t === "dark" || t === "light") { ctx.setTheme && ctx.setTheme(t); return out(M.themeSet(t)); }
+      ctx.toggleTheme && ctx.toggleTheme(); return out(M.themeToggled);
     }
     case "neofetch":
       return out(
         `<span class='ascii'>${ASCII}</span>\n\n` +
         `<span class='hl'>OS</span>        Vitor Pouza OS 1.0\n` +
         `<span class='hl'>Host</span>      ${id.cargo}\n` +
-        `<span class='hl'>Uptime</span>    8 anos de carreira\n` +
+        `<span class='hl'>Uptime</span>    ${M.uptime}\n` +
         `<span class='hl'>Shell</span>     React · Next.js · TypeScript\n` +
         `<span class='hl'>Stack</span>     Node.js · Python · AWS\n` +
         `<span class='hl'>Local</span>     ${id.local} · ${id.modelo}\n` +
-        `<span class='hl'>Status</span>    <span class='ok'>disponível — início imediato</span>`
+        `<span class='hl'>Status</span>    ${M.status}`
       );
     case "sudo":
-      return out("Permissão negada: o Vitor já tem autonomia total de execução. 😎");
+      return out(M.sudo);
     case "clear": case "cls": return { clear: true };
-    case "exit": case "quit": return out("não dá pra sair de uma carreira de 8 anos. tente 'help'.");
+    case "exit": case "quit": return out(M.exit);
     default:
-      return out(`comando não encontrado: <span class='hl'>${c}</span>. digite <span class='hl'>help</span>.`);
+      return out(M.notFound(c));
   }
 }
 
 function AppTerminal(props) {
+  const lang = props.lang || "pt";
   const boot = [
     { html: "<span class='ascii'>" + ASCII + "</span>", cls: "term-out" },
-    { html: "Bem-vindo ao <span class='hl'>Vitor Pouza OS</span>. Digite <span class='hl'>help</span> para ver os comandos.", cls: "term-out" },
+    { html: TERM_MSG[lang].welcome, cls: "term-out" },
   ];
   const [lines, setLines] = useS(boot);
   const [val, setVal] = useS("");
